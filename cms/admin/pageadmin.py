@@ -45,6 +45,7 @@ from cms.utils import (copy_plugins, helpers, moderator, permissions, plugins, g
     get_language_from_request, placeholder as placeholder_utils, admin as admin_utils, cms_static_url)
 from cms.utils.i18n import get_language_dict, get_language_list, get_language_tuple, get_language_object
 from cms.utils.page_resolver import is_valid_url
+from cms.utils.placeholder import get_placeholder_conf
 from cms.utils.admin import jsonify_request
 
 from cms.utils.permissions import has_global_page_permission
@@ -1357,6 +1358,10 @@ class PageAdmin(ModelAdmin):
                 return HttpResponseForbidden(_("You do not have permission to change this page"))
 
             placeholder_slot = request.POST['placeholder']
+            placeholder_conf = get_placeholder_conf('plugins', placeholder_slot)
+            if placeholder_conf and not plugin.plugin_type in placeholder_conf:
+                return HttpResponseBadRequest(_("This slot is not configure to work with this plugin"))
+
             placeholders = self.get_fieldset_placeholders(page.get_template())
             if not placeholder_slot in placeholders:
                 return HttpResponseBadRequest(str("error"))
